@@ -1,0 +1,19 @@
+{
+  "name": "Ikimina Savings Group",
+  "short_name": "Ikimina",
+  "description": "Track members, contributions, loans and meetings for an ikimina savings group.",
+  "start_url": "./index.php",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#eef2ec",
+  "theme_color": "#14532d",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
