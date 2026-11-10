@@ -70,24 +70,6 @@ p { margin: 0 0 10px; }
 
 .appbar-actions { display: flex; align-items: center; gap: 8px; }
 
-.lang-switch {
-    display: grid;
-    place-items: center;
-    min-width: 40px;
-    height: 32px;
-    padding: 0 9px;
-    border-radius: 999px;
-    background: rgba(255, 255, 255, 0.14);
-    color: #dcfce7;
-    font-size: 12px;
-    font-weight: 800;
-    letter-spacing: 0.04em;
-    text-decoration: none;
-    -webkit-tap-highlight-color: transparent;
-}
-
-.lang-switch:hover { background: rgba(255, 255, 255, 0.24); }
-
 .avatar {
     flex: 0 0 auto;
     width: 38px;
@@ -502,29 +484,6 @@ th.wrap, td.wrap { white-space: normal; min-width: 150px; }
     padding: 24px 18px;
     background: radial-gradient(circle at 50% 0%, #1f7a44 0%, #14532d 45%, #0b2e18 100%);
 }
-
-.auth-lang {
-    position: fixed;
-    top: calc(14px + env(safe-area-inset-top));
-    right: 14px;
-    display: flex;
-    gap: 6px;
-    z-index: 5;
-}
-
-.auth-lang a {
-    padding: 7px 13px;
-    border-radius: 999px;
-    border: 1px solid rgba(255, 255, 255, 0.28);
-    background: rgba(255, 255, 255, 0.12);
-    color: #dcfce7;
-    font-size: 12px;
-    font-weight: 800;
-    letter-spacing: 0.04em;
-    text-decoration: none;
-}
-
-.auth-lang a.active { background: #dcfce7; color: #14532d; border-color: #dcfce7; }
 
 .auth-card {
     width: 100%;

@@ -5,26 +5,8 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-// Switch language with ?lang=en or ?lang=rw. The choice is remembered.
-if (isset($_GET['lang'])) {
-    $requested = $_GET['lang'] === 'rw' ? 'rw' : ($_GET['lang'] === 'en' ? 'en' : '');
-    if ($requested !== '') {
-        $_SESSION['lang'] = $requested;
-        setcookie('ikimina_lang', $requested, time() + 31536000, '/');
-    }
-}
-
-// Session first, then the cookie, then the browser preference.
-$lang = 'en';
-if (isset($_SESSION['lang']) && in_array($_SESSION['lang'], array('en', 'rw'), true)) {
-    $lang = $_SESSION['lang'];
-} elseif (isset($_COOKIE['ikimina_lang']) && in_array($_COOKIE['ikimina_lang'], array('en', 'rw'), true)) {
-    $lang = $_COOKIE['ikimina_lang'];
-} elseif (isset($_SERVER['HTTP_ACCEPT_LANGUAGE']) && stripos($_SERVER['HTTP_ACCEPT_LANGUAGE'], 'rw') !== false) {
-    $lang = 'rw';
-}
-
-$GLOBALS['APP_LANG'] = $lang;
+// English only. Old ?lang= links are ignored.
+$GLOBALS['APP_LANG'] = 'en';
 
 function current_lang()
 {

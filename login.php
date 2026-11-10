@@ -68,15 +68,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <link rel="stylesheet" href="style.css">
 </head>
 <body class="auth-page">
-    <div class="auth-lang">
-        <a href="?lang=en" class="<?php echo current_lang() === 'en' ? 'active' : ''; ?>"
-           <?php echo current_lang() === 'en' ? 'aria-current="true"' : ''; ?>
-           title="<?php echo h(t('English')); ?>">EN</a>
-        <a href="?lang=rw" class="<?php echo current_lang() === 'rw' ? 'active' : ''; ?>"
-           <?php echo current_lang() === 'rw' ? 'aria-current="true"' : ''; ?>
-           title="<?php echo h(t('Kinyarwanda')); ?>">RW</a>
-    </div>
-
     <div class="card auth-card">
         <div class="auth-brand">
             <div class="auth-logo">IK</div>

@@ -72,10 +72,6 @@ function nav_icon($name)
             </span>
         </a>
         <div class="appbar-actions">
-            <a class="lang-switch" href="<?php echo h(language_url(other_lang())); ?>"
-               title="<?php echo h(t('Switch language')); ?>">
-                <?php echo other_lang() === 'rw' ? 'RW' : 'EN'; ?>
-            </a>
             <a class="avatar" href="more.php" title="<?php echo h(t('Account and more')); ?>">
                 <?php echo h(initials($_SESSION['username'])); ?>
             </a>

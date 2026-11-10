@@ -132,17 +132,6 @@ require 'header.php';
 <div class="card">
     <div class="section-head"><h2><?php echo h(t('Account')); ?></h2></div>
     <div class="list">
-        <a class="list-row" href="<?php echo h(language_url(other_lang())); ?>">
-            <div class="avatar-sm"><?php echo nav_icon('language'); ?></div>
-            <div class="list-main">
-                <div class="list-title"><?php echo h(t('Language')); ?></div>
-                <div class="list-sub">
-                    <?php echo h(current_lang() === 'rw' ? t('Kinyarwanda') : t('English')); ?>
-                    &middot; <?php echo h(t('Switch language')); ?>
-                </div>
-            </div>
-            <span class="chevron"><?php echo current_lang() === 'rw' ? 'EN' : 'RW'; ?></span>
-        </a>
         <a class="list-row" href="change_password.php">
             <div class="avatar-sm"><?php echo nav_icon('settings'); ?></div>
             <div class="list-main">

@@ -183,7 +183,7 @@ require 'header.php';
         </p>
     </div>
     <?php if (is_admin()): ?>
-        <a class="btn btn-small" href="register.php"><?php echo h(t('Register')); ?></a>
+        <a class="btn btn-small" href="register.php"><?php echo h(t('Add member')); ?></a>
     <?php endif; ?>
 </div>
 
@@ -192,8 +192,8 @@ require 'header.php';
     <div class="amount"><?php echo money($group_total); ?> <small>RWF</small></div>
     <div class="hero-row">
         <span><?php echo h(tn('%d member in the group', '%d members in the group', $member_count)); ?></span>
-        <span><?php echo count($families); ?> <?php echo h(t('Families')); ?></span>
-        <span><?php echo count($individuals); ?> <?php echo h(t('Individual members')); ?></span>
+        <span><?php echo h(tn('%d family', '%d families', count($families))); ?></span>
+        <span><?php echo h(tn('%d individual', '%d individuals', count($individuals))); ?></span>
     </div>
 </div>
 
@@ -208,33 +208,33 @@ require 'header.php';
     </div>
     <div class="stat">
         <div class="number"><?php echo money($loan_principal_total); ?></div>
-        <div class="label"><?php echo h(t('Loans issued (RWF)')); ?></div>
+        <div class="label"><?php echo h(t('Money lent out (RWF)')); ?></div>
     </div>
     <div class="stat">
         <div class="number"><?php echo money($loan_outstanding_total); ?></div>
-        <div class="label"><?php echo h(t('Loans outstanding (RWF)')); ?></div>
+        <div class="label"><?php echo h(t('Still to be repaid (RWF)')); ?></div>
     </div>
 </div>
 
 <div class="card">
     <div class="section-head">
-        <h2><?php echo h(t('Savings by family or individual')); ?></h2>
-        <a class="btn btn-secondary btn-small" href="balances.php"><?php echo h(t('Balances')); ?></a>
+        <h2><?php echo h(t('Savings')); ?></h2>
+        <a class="btn btn-secondary btn-small" href="balances.php"><?php echo h(t('See all savings')); ?></a>
     </div>
 
     <?php if (count($families) === 0 && count($individuals) === 0): ?>
         <div class="empty">
             <p><?php echo h(t('No members yet.')); ?></p>
             <?php if (is_admin()): ?>
-                <a class="btn" href="register.php"><?php echo h(t('Register the first member')); ?></a>
+                <a class="btn" href="register.php"><?php echo h(t('Add the first member')); ?></a>
             <?php endif; ?>
         </div>
     <?php else: ?>
-        <p class="table-hint"><?php echo h(t('Scroll sideways to see all columns.')); ?></p>
+        <p class="table-hint"><?php echo h(t('Swipe left to see all columns.')); ?></p>
 
         <?php if (count($families) > 0): ?>
             <div class="section-head" style="margin-top:14px;">
-                <h2><?php echo h(t('Families')); ?></h2>
+                <h2><?php echo h(t('Family savings')); ?></h2>
                 <span class="badge neutral"><?php echo count($families); ?></span>
             </div>
             <div class="table-wrap">
@@ -243,7 +243,7 @@ require 'header.php';
                         <tr>
                             <th><?php echo h(t('Family')); ?></th>
                             <th class="wrap"><?php echo h(t('Parent or guardian')); ?></th>
-                            <th><?php echo h(t('Members')); ?></th>
+                            <th><?php echo h(t('People')); ?></th>
                             <th class="num"><?php echo h(t('Total saved')); ?> (RWF)</th>
                         </tr>
                     </thead>
@@ -254,7 +254,7 @@ require 'header.php';
                                     <a href="family_view.php?id=<?php echo (int) $family['id']; ?>"><?php echo h($family['name']); ?></a>
                                 </td>
                                 <td class="wrap"><?php echo h($family['guardian_name']); ?></td>
-                                <td><?php echo h(tn('%d member', '%d members', (int) $family['member_count'])); ?></td>
+                                <td><?php echo h(tn('%d person', '%d people', (int) $family['member_count'])); ?></td>
                                 <td class="num"><strong><?php echo money($family['total_saved']); ?></strong> RWF</td>
                             </tr>
                         <?php endforeach; ?>
@@ -265,14 +265,14 @@ require 'header.php';
 
         <?php if (count($individuals) > 0): ?>
             <div class="section-head" style="margin-top:18px;">
-                <h2><?php echo h(t('Individual members')); ?></h2>
+                <h2><?php echo h(t('Individual savings')); ?></h2>
                 <span class="badge neutral"><?php echo count($individuals); ?></span>
             </div>
             <div class="table-wrap">
                 <table class="data-table savings-table">
                     <thead>
                         <tr>
-                            <th><?php echo h(t('Member')); ?></th>
+                            <th><?php echo h(t('Person')); ?></th>
                             <th><?php echo h(t('Phone')); ?></th>
                             <th class="num"><?php echo h(t('Total saved')); ?> (RWF)</th>
                         </tr>
@@ -320,7 +320,7 @@ require 'header.php';
         <?php else: ?>
             <p><?php echo h(t('No members yet.')); ?></p>
             <?php if (is_admin()): ?>
-                <a class="btn" href="register.php"><?php echo h(t('Register the first member')); ?></a>
+                <a class="btn" href="register.php"><?php echo h(t('Add the first member')); ?></a>
             <?php endif; ?>
         <?php endif; ?>
     </div>
@@ -329,21 +329,21 @@ require 'header.php';
         <h2><?php echo h(t('All members')); ?></h2>
         <span class="badge neutral"><?php echo $member_count; ?></span>
     </div>
-    <p class="table-hint"><?php echo h(t('Scroll sideways to see all columns.')); ?></p>
+    <p class="table-hint"><?php echo h(t('Swipe left to see all columns.')); ?></p>
 
     <div class="table-wrap">
         <table class="data-table members-table">
             <thead>
                 <tr>
-                    <th><?php echo h(t('Member')); ?></th>
-                    <th class="wrap"><?php echo h(t('Family or individual')); ?></th>
+                    <th><?php echo h(t('Name')); ?></th>
+                    <th class="wrap"><?php echo h(t('Family or person')); ?></th>
                     <th class="num"><?php echo h(t('Total saved')); ?> (RWF)</th>
-                    <th class="wrap"><?php echo h(t('Missed months')); ?></th>
-                    <th><?php echo h(t('This month')); ?></th>
-                    <th class="wrap"><?php echo h(t('Loan')); ?></th>
-                    <th><?php echo h(t('Status')); ?></th>
+                    <th class="wrap"><?php echo h(t('Months missed')); ?></th>
+                    <th><?php echo h(t('Paid this month?')); ?></th>
+                    <th class="wrap num"><?php echo h(t('Loan owed')); ?> (RWF)</th>
+                    <th><?php echo h(t('Active?')); ?></th>
                     <?php if (is_admin()): ?>
-                        <th><?php echo h(t('Actions')); ?></th>
+                        <th><?php echo h(t('Manage')); ?></th>
                     <?php endif; ?>
                 </tr>
             </thead>
@@ -374,7 +374,7 @@ require 'header.php';
                                 <a href="family_view.php?id=<?php echo (int) $member['family_id']; ?>"><?php echo h($member['family_name']); ?></a>
                                 <span class="sub"><?php echo h(t('Family')); ?></span>
                             <?php else: ?>
-                                <?php echo h(t('Individual member')); ?>
+                                <?php echo h(t('Individual')); ?>
                             <?php endif; ?>
                         </td>
                         <td class="num">
@@ -383,7 +383,6 @@ require 'header.php';
                                 <span class="sub"><?php echo h(t('Family total')); ?></span>
                             <?php else: ?>
                                 <strong><?php echo money($member_individual_total); ?></strong> RWF
-                                <span class="sub"><?php echo h(t('Total saved')); ?></span>
                             <?php endif; ?>
                         </td>
                         <td class="wrap">
@@ -396,33 +395,33 @@ require 'header.php';
                                 echo h(implode(', ', $missed_labels));
                                 ?>
                             <?php else: ?>
-                                <?php echo h(t('No missed months')); ?>
+                                <?php echo h(t('None')); ?>
                             <?php endif; ?>
                         </td>
                         <td>
                             <?php if ($member['current_month_paid']): ?>
-                                <span class="badge"><?php echo h(t('Paid')); ?></span>
+                                <span class="badge"><?php echo h(t('Yes')); ?></span>
                             <?php elseif ($member['current_month_expected']): ?>
-                                <span class="badge warn"><?php echo h(t('Not paid yet')); ?></span>
+                                <span class="badge warn"><?php echo h(t('No')); ?></span>
                             <?php else: ?>
-                                &mdash;
+                                <span class="badge neutral"><?php echo h(t('Not due')); ?></span>
                             <?php endif; ?>
                         </td>
-                        <td class="wrap">
+                        <td class="wrap num">
                             <?php if (isset($member_open_loans[$member_key])): ?>
                                 <?php $open_loan = $member_open_loans[$member_key]; ?>
-                                <strong><?php echo money($open_loan['amount']); ?> RWF</strong>
+                                <strong><?php echo money($open_loan['outstanding']); ?> RWF</strong>
                                 <span class="sub">
-                                    <?php echo h(t('outstanding')); ?>: <?php echo money($open_loan['outstanding']); ?> RWF
+                                    <?php echo h(t('Loan amount')); ?>: <?php echo money($open_loan['amount']); ?> RWF
                                     &middot; <?php echo h(t('Open loans')); ?>: <?php echo (int) $open_loan['count']; ?>
                                 </span>
                             <?php else: ?>
-                                &mdash;
+                                <span class="muted"><?php echo h(t('None')); ?></span>
                             <?php endif; ?>
                         </td>
                         <td>
                             <span class="badge <?php echo $member['status'] === 'active' ? '' : 'danger'; ?>">
-                                <?php echo h(t($member['status'] === 'active' ? 'Active' : 'Inactive')); ?>
+                                <?php echo h(t($member['status'] === 'active' ? 'Yes' : 'No')); ?>
                             </span>
                         </td>
                         <?php if (is_admin()): ?>
@@ -465,7 +464,7 @@ require 'header.php';
 
 <div class="card">
     <div class="section-head">
-        <h2><?php echo h(t('Loans issued')); ?></h2>
+        <h2><?php echo h(t('Loans given')); ?></h2>
         <span class="badge neutral"><?php echo h(t('One-time interest')); ?></span>
     </div>
     <p class="hint"><?php echo h(t('Interest is charged once, not monthly.')); ?></p>
@@ -478,21 +477,22 @@ require 'header.php';
             <?php endif; ?>
         </div>
     <?php else: ?>
-        <p class="table-hint"><?php echo h(t('Scroll sideways to see all columns.')); ?></p>
+        <p class="table-hint"><?php echo h(t('Swipe left to see all columns.')); ?></p>
 
         <div class="table-wrap">
             <table class="data-table loans-table">
                 <thead>
                     <tr>
-                        <th><?php echo h(t('Recipient')); ?></th>
-                        <th class="wrap"><?php echo h(t('Family or individual')); ?></th>
-                        <th class="num"><?php echo h(t('Loan amount (RWF)')); ?></th>
-                        <th><?php echo h(t('Interest (one-time)')); ?></th>
-                        <th class="num"><?php echo h(t('Total to repay')); ?> (RWF)</th>
-                        <th class="num"><?php echo h(t('Paid (RWF)')); ?></th>
-                        <th class="num"><?php echo h(t('Outstanding (RWF)')); ?></th>
-                        <th><?php echo h(t('Status')); ?></th>
-                        <th class="wrap"><?php echo h(t('Dates')); ?></th>
+                        <th><?php echo h(t('Borrower')); ?></th>
+                        <th class="wrap"><?php echo h(t('Family or person')); ?></th>
+                        <th class="num"><?php echo h(t('Borrowed (RWF)')); ?></th>
+                        <th><?php echo h(t('Interest (paid once)')); ?></th>
+                        <th class="num"><?php echo h(t('Total to pay (RWF)')); ?></th>
+                        <th class="num"><?php echo h(t('Already paid (RWF)')); ?></th>
+                        <th class="num"><?php echo h(t('Still to pay (RWF)')); ?></th>
+                        <th><?php echo h(t('Loan status')); ?></th>
+                        <th><?php echo h(t('Date given')); ?></th>
+                        <th><?php echo h(t('Due date')); ?></th>
                     </tr>
                 </thead>
                 <tbody>
@@ -504,7 +504,7 @@ require 'header.php';
                                     <?php echo h($loan['family_name']); ?>
                                     <span class="sub"><?php echo h(t('Family')); ?></span>
                                 <?php else: ?>
-                                    <?php echo h(t('Individual member')); ?>
+                                    <?php echo h(t('Individual')); ?>
                                 <?php endif; ?>
                             </td>
                             <td class="num"><?php echo money($loan['amount']); ?></td>
@@ -518,13 +518,11 @@ require 'header.php';
                                 <?php elseif ($loan['state'] === 'overdue'): ?>
                                     <span class="badge danger"><?php echo h(t('Overdue')); ?></span>
                                 <?php else: ?>
-                                    <span class="badge warn"><?php echo h(t('Active')); ?></span>
+                                    <span class="badge warn"><?php echo h(t('Open')); ?></span>
                                 <?php endif; ?>
                             </td>
-                            <td class="wrap">
-                                <?php echo h(t('Issued %s', app_date('j M Y', strtotime($loan['loan_date'])))); ?>
-                                <span class="sub"><?php echo h(t('due %s', app_date('j M Y', strtotime($loan['due_date'])))); ?></span>
-                            </td>
+                            <td><?php echo h(app_date('j M Y', strtotime($loan['loan_date']))); ?></td>
+                            <td><?php echo h(app_date('j M Y', strtotime($loan['due_date']))); ?></td>
                         </tr>
                     <?php endforeach; ?>
                 </tbody>
