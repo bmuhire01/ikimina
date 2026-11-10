@@ -1,0 +1,7 @@
+# Keep local credentials and setup files private.
+<FilesMatch "^(config\.local\.php|config\.example\.php|setup\.sql|.*\.md|.*\.log)$">
+    Require all denied
+</FilesMatch>
+
+# Do not show a directory listing.
+Options -Indexes

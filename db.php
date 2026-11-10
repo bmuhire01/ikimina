@@ -4,11 +4,25 @@
 // Use Rwanda time for dates and months.
 date_default_timezone_set('Africa/Kigali');
 
-// XAMPP default settings: user "root" with no password.
-define('DB_HOST', 'localhost');
-define('DB_USER', 'root');
-define('DB_PASS', '');
-define('DB_NAME', 'ikimina');
+// Load server-specific credentials if the file exists. It is ignored by Git.
+$local_config = __DIR__ . '/config.local.php';
+if (is_file($local_config)) {
+    require $local_config;
+}
+
+// XAMPP default settings, used when no local or environment config is present.
+if (!defined('DB_HOST')) {
+    define('DB_HOST', getenv('IKIMINA_DB_HOST') !== false ? getenv('IKIMINA_DB_HOST') : 'localhost');
+}
+if (!defined('DB_USER')) {
+    define('DB_USER', getenv('IKIMINA_DB_USER') !== false ? getenv('IKIMINA_DB_USER') : 'root');
+}
+if (!defined('DB_PASS')) {
+    define('DB_PASS', getenv('IKIMINA_DB_PASS') !== false ? getenv('IKIMINA_DB_PASS') : '');
+}
+if (!defined('DB_NAME')) {
+    define('DB_NAME', getenv('IKIMINA_DB_NAME') !== false ? getenv('IKIMINA_DB_NAME') : 'ikimina');
+}
 
 // Return false on error instead of throwing an exception.
 mysqli_report(MYSQLI_REPORT_OFF);
