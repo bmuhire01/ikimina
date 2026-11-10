@@ -230,27 +230,36 @@ require 'header.php';
             <?php endif; ?>
         </div>
     <?php else: ?>
+        <p class="table-hint"><?php echo h(t('Scroll sideways to see all columns.')); ?></p>
+
         <?php if (count($families) > 0): ?>
             <div class="section-head" style="margin-top:14px;">
                 <h2><?php echo h(t('Families')); ?></h2>
                 <span class="badge neutral"><?php echo count($families); ?></span>
             </div>
-            <div class="list">
-                <?php foreach ($families as $family): ?>
-                    <a class="list-row" href="family_view.php?id=<?php echo (int) $family['id']; ?>">
-                        <div class="avatar-sm"><?php echo h(initials($family['name'])); ?></div>
-                        <div class="list-main">
-                            <div class="list-title">
-                                <?php echo h($family['name']); ?>
-                                <span class="badge neutral"><?php echo h(tn('%d member', '%d members', (int) $family['member_count'])); ?></span>
-                            </div>
-                            <div class="list-sub">
-                                <?php echo h(t('Parent or guardian')); ?>: <?php echo h($family['guardian_name']); ?>
-                            </div>
-                        </div>
-                        <div class="list-side"><?php echo money($family['total_saved']); ?><small>RWF</small></div>
-                    </a>
-                <?php endforeach; ?>
+            <div class="table-wrap">
+                <table class="data-table savings-table">
+                    <thead>
+                        <tr>
+                            <th><?php echo h(t('Family')); ?></th>
+                            <th class="wrap"><?php echo h(t('Parent or guardian')); ?></th>
+                            <th><?php echo h(t('Members')); ?></th>
+                            <th class="num"><?php echo h(t('Total saved')); ?> (RWF)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($families as $family): ?>
+                            <tr>
+                                <td class="name">
+                                    <a href="family_view.php?id=<?php echo (int) $family['id']; ?>"><?php echo h($family['name']); ?></a>
+                                </td>
+                                <td class="wrap"><?php echo h($family['guardian_name']); ?></td>
+                                <td><?php echo h(tn('%d member', '%d members', (int) $family['member_count'])); ?></td>
+                                <td class="num"><strong><?php echo money($family['total_saved']); ?></strong> RWF</td>
+                            </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
             </div>
         <?php endif; ?>
 
@@ -259,24 +268,30 @@ require 'header.php';
                 <h2><?php echo h(t('Individual members')); ?></h2>
                 <span class="badge neutral"><?php echo count($individuals); ?></span>
             </div>
-            <div class="list">
-                <?php foreach ($individuals as $individual): ?>
-                    <div class="list-row">
-                        <div class="avatar-sm"><?php echo h(initials($individual['name'])); ?></div>
-                        <div class="list-main">
-                            <div class="list-title">
-                                <?php echo h($individual['name']); ?>
-                                <?php if ($individual['member_type'] === 'child'): ?>
-                                    <span class="badge neutral"><?php echo h(t('Child')); ?></span>
-                                <?php endif; ?>
-                            </div>
-                            <div class="list-sub">
-                                <?php echo $individual['phone'] ? h($individual['phone']) : h(t('No phone')); ?>
-                            </div>
-                        </div>
-                        <div class="list-side"><?php echo money($individual['total_saved']); ?><small>RWF</small></div>
-                    </div>
-                <?php endforeach; ?>
+            <div class="table-wrap">
+                <table class="data-table savings-table">
+                    <thead>
+                        <tr>
+                            <th><?php echo h(t('Member')); ?></th>
+                            <th><?php echo h(t('Phone')); ?></th>
+                            <th class="num"><?php echo h(t('Total saved')); ?> (RWF)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($individuals as $individual): ?>
+                            <tr>
+                                <td class="name">
+                                    <?php echo h($individual['name']); ?>
+                                    <?php if ($individual['member_type'] === 'child'): ?>
+                                        <span class="badge neutral"><?php echo h(t('Child')); ?></span>
+                                    <?php endif; ?>
+                                </td>
+                                <td><?php echo $individual['phone'] ? h($individual['phone']) : h(t('No phone')); ?></td>
+                                <td class="num"><strong><?php echo money($individual['total_saved']); ?></strong> RWF</td>
+                            </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
             </div>
         <?php endif; ?>
     <?php endif; ?>
@@ -310,109 +325,140 @@ require 'header.php';
         <?php endif; ?>
     </div>
 <?php else: ?>
-    <div class="list">
-        <?php foreach ($members as $member): ?>
-            <?php
-            $member_key = (int) $member['id'];
-            $member_family_total = $member['family_id'] && isset($family_totals_by_id[(int) $member['family_id']])
-                ? $family_totals_by_id[(int) $member['family_id']]
-                : 0;
-            $member_individual_total = isset($individual_totals_by_id[$member_key])
-                ? $individual_totals_by_id[$member_key]
-                : 0;
-            ?>
-            <div class="list-row">
-                <div class="avatar-sm"><?php echo h(initials($member['name'])); ?></div>
-                <div class="list-main">
-                    <div class="list-title">
-                        <?php echo h($member['name']); ?>
-                        <span class="badge <?php echo $member['status'] === 'active' ? '' : 'danger'; ?>">
-                            <?php echo h(t($member['status'] === 'active' ? 'Active' : 'Inactive')); ?>
-                        </span>
-                        <?php if ($member['member_type'] === 'child'): ?>
-                            <span class="badge neutral"><?php echo h(t('Child')); ?></span>
-                        <?php endif; ?>
-                    </div>
-                    <div class="list-sub">
-                        <?php echo $member['phone'] ? h($member['phone']) : h(t('No phone')); ?>
-                        &middot; <?php echo h(t('joined %s', app_date('j M Y', strtotime($member['join_date'])))); ?>
-                    </div>
+    <div class="section-head">
+        <h2><?php echo h(t('All members')); ?></h2>
+        <span class="badge neutral"><?php echo $member_count; ?></span>
+    </div>
+    <p class="table-hint"><?php echo h(t('Scroll sideways to see all columns.')); ?></p>
 
-                    <?php if ($member['family_id'] && $member['family_name']): ?>
-                        <div class="list-sub">
-                            <?php echo h(t('Family')); ?>:
-                            <a href="family_view.php?id=<?php echo (int) $member['family_id']; ?>"><?php echo h($member['family_name']); ?></a>
-                            &middot; <?php echo h(t('Family total')); ?>:
-                            <strong><?php echo money($member_family_total); ?> RWF</strong>
-                        </div>
-                    <?php else: ?>
-                        <div class="list-sub">
-                            <?php echo h(t('Individual member')); ?>
-                            &middot; <?php echo h(t('Total saved')); ?>:
-                            <strong><?php echo money($member_individual_total); ?> RWF</strong>
-                        </div>
-                    <?php endif; ?>
-
-                    <div class="list-sub">
-                        <?php if (count($member['missed_months']) > 0): ?>
-                            <?php echo h(t('Missed months (%d):', count($member['missed_months']))); ?>
-                            <?php
-                            $missed_labels = array();
-                            foreach ($member['missed_months'] as $missed_month) {
-                                $missed_labels[] = app_date('M Y', strtotime($missed_month . '-01'));
-                            }
-                            echo h(implode(', ', $missed_labels));
-                            ?>
-                        <?php else: ?>
-                            <?php echo h(t('No missed months')); ?>
-                        <?php endif; ?>
-                        <?php if ($member['current_month_expected'] && !$member['current_month_paid']): ?>
-                            &middot; <span class="badge warn"><?php echo h(t('This month not paid yet')); ?></span>
-                        <?php endif; ?>
-                    </div>
-
-                    <?php if (isset($member_open_loans[$member_key])): ?>
-                        <?php $open_loan = $member_open_loans[$member_key]; ?>
-                        <div class="list-sub">
-                            <?php echo h(t('Loan issued')); ?>:
-                            <strong><?php echo money($open_loan['amount']); ?> RWF</strong>
-                            &middot; <?php echo h(t('outstanding')); ?>:
-                            <strong><?php echo money($open_loan['outstanding']); ?> RWF</strong>
-                            &middot; <?php echo h(t('Open loans')); ?>: <?php echo (int) $open_loan['count']; ?>
-                        </div>
-                    <?php endif; ?>
-
-                    <?php if (is_admin() && $member['member_type'] !== 'child'): ?>
-                        <div class="list-sub">
-                            <?php if ($member['login_username']): ?>
-                                <?php echo h(t('Login:')); ?> @<?php echo h($member['login_username']); ?>
-                            <?php else: ?>
-                                <?php echo h(t('No login account')); ?>
-                            <?php endif; ?>
-                        </div>
-                    <?php endif; ?>
+    <div class="table-wrap">
+        <table class="data-table members-table">
+            <thead>
+                <tr>
+                    <th><?php echo h(t('Member')); ?></th>
+                    <th class="wrap"><?php echo h(t('Family or individual')); ?></th>
+                    <th class="num"><?php echo h(t('Total saved')); ?> (RWF)</th>
+                    <th class="wrap"><?php echo h(t('Missed months')); ?></th>
+                    <th><?php echo h(t('This month')); ?></th>
+                    <th class="wrap"><?php echo h(t('Loan')); ?></th>
+                    <th><?php echo h(t('Status')); ?></th>
                     <?php if (is_admin()): ?>
-                        <div class="row-actions">
-                            <?php if ($member['family_id']): ?>
-                                <a class="btn btn-secondary btn-small"
-                                   href="family_member_edit.php?id=<?php echo (int) $member['id']; ?>"><?php echo h(t('Edit')); ?></a>
-                                <a class="btn btn-secondary btn-small"
-                                   href="family_view.php?id=<?php echo (int) $member['family_id']; ?>"><?php echo h(t('View family')); ?></a>
-                            <?php else: ?>
-                                <a class="btn btn-secondary btn-small"
-                                   href="edit_member.php?id=<?php echo (int) $member['id']; ?>"><?php echo h(t('Edit')); ?></a>
-                            <?php endif; ?>
-                            <?php if ($member['member_type'] !== 'child'): ?>
-                                <a class="btn btn-secondary btn-small"
-                                   href="member_login.php?member_id=<?php echo (int) $member['id']; ?>">
-                                    <?php echo h(t($member['login_username'] ? 'Manage login' : 'Create login')); ?>
-                                </a>
-                            <?php endif; ?>
-                        </div>
+                        <th><?php echo h(t('Actions')); ?></th>
                     <?php endif; ?>
-                </div>
-            </div>
-        <?php endforeach; ?>
+                </tr>
+            </thead>
+            <tbody>
+                <?php foreach ($members as $member): ?>
+                    <?php
+                    $member_key = (int) $member['id'];
+                    $member_family_total = $member['family_id'] && isset($family_totals_by_id[(int) $member['family_id']])
+                        ? $family_totals_by_id[(int) $member['family_id']]
+                        : 0;
+                    $member_individual_total = isset($individual_totals_by_id[$member_key])
+                        ? $individual_totals_by_id[$member_key]
+                        : 0;
+                    ?>
+                    <tr>
+                        <td class="name wrap">
+                            <?php echo h($member['name']); ?>
+                            <?php if ($member['member_type'] === 'child'): ?>
+                                <span class="badge neutral"><?php echo h(t('Child')); ?></span>
+                            <?php endif; ?>
+                            <span class="sub">
+                                <?php echo $member['phone'] ? h($member['phone']) : h(t('No phone')); ?>
+                                &middot; <?php echo h(t('joined %s', app_date('j M Y', strtotime($member['join_date'])))); ?>
+                            </span>
+                        </td>
+                        <td class="wrap">
+                            <?php if ($member['family_id'] && $member['family_name']): ?>
+                                <a href="family_view.php?id=<?php echo (int) $member['family_id']; ?>"><?php echo h($member['family_name']); ?></a>
+                                <span class="sub"><?php echo h(t('Family')); ?></span>
+                            <?php else: ?>
+                                <?php echo h(t('Individual member')); ?>
+                            <?php endif; ?>
+                        </td>
+                        <td class="num">
+                            <?php if ($member['family_id'] && $member['family_name']): ?>
+                                <strong><?php echo money($member_family_total); ?></strong> RWF
+                                <span class="sub"><?php echo h(t('Family total')); ?></span>
+                            <?php else: ?>
+                                <strong><?php echo money($member_individual_total); ?></strong> RWF
+                                <span class="sub"><?php echo h(t('Total saved')); ?></span>
+                            <?php endif; ?>
+                        </td>
+                        <td class="wrap">
+                            <?php if (count($member['missed_months']) > 0): ?>
+                                <?php
+                                $missed_labels = array();
+                                foreach ($member['missed_months'] as $missed_month) {
+                                    $missed_labels[] = app_date('M Y', strtotime($missed_month . '-01'));
+                                }
+                                echo h(implode(', ', $missed_labels));
+                                ?>
+                            <?php else: ?>
+                                <?php echo h(t('No missed months')); ?>
+                            <?php endif; ?>
+                        </td>
+                        <td>
+                            <?php if ($member['current_month_paid']): ?>
+                                <span class="badge"><?php echo h(t('Paid')); ?></span>
+                            <?php elseif ($member['current_month_expected']): ?>
+                                <span class="badge warn"><?php echo h(t('Not paid yet')); ?></span>
+                            <?php else: ?>
+                                &mdash;
+                            <?php endif; ?>
+                        </td>
+                        <td class="wrap">
+                            <?php if (isset($member_open_loans[$member_key])): ?>
+                                <?php $open_loan = $member_open_loans[$member_key]; ?>
+                                <strong><?php echo money($open_loan['amount']); ?> RWF</strong>
+                                <span class="sub">
+                                    <?php echo h(t('outstanding')); ?>: <?php echo money($open_loan['outstanding']); ?> RWF
+                                    &middot; <?php echo h(t('Open loans')); ?>: <?php echo (int) $open_loan['count']; ?>
+                                </span>
+                            <?php else: ?>
+                                &mdash;
+                            <?php endif; ?>
+                        </td>
+                        <td>
+                            <span class="badge <?php echo $member['status'] === 'active' ? '' : 'danger'; ?>">
+                                <?php echo h(t($member['status'] === 'active' ? 'Active' : 'Inactive')); ?>
+                            </span>
+                        </td>
+                        <?php if (is_admin()): ?>
+                            <td>
+                                <div class="table-actions">
+                                    <?php if ($member['family_id']): ?>
+                                        <a class="btn btn-secondary btn-small"
+                                           href="family_member_edit.php?id=<?php echo (int) $member['id']; ?>"><?php echo h(t('Edit')); ?></a>
+                                        <a class="btn btn-secondary btn-small"
+                                           href="family_view.php?id=<?php echo (int) $member['family_id']; ?>"><?php echo h(t('View family')); ?></a>
+                                    <?php else: ?>
+                                        <a class="btn btn-secondary btn-small"
+                                           href="edit_member.php?id=<?php echo (int) $member['id']; ?>"><?php echo h(t('Edit')); ?></a>
+                                    <?php endif; ?>
+                                    <?php if ($member['member_type'] !== 'child'): ?>
+                                        <a class="btn btn-secondary btn-small"
+                                           href="member_login.php?member_id=<?php echo (int) $member['id']; ?>">
+                                            <?php echo h(t($member['login_username'] ? 'Manage login' : 'Create login')); ?>
+                                        </a>
+                                    <?php endif; ?>
+                                </div>
+                                <?php if ($member['member_type'] !== 'child'): ?>
+                                    <span class="sub">
+                                        <?php if ($member['login_username']): ?>
+                                            <?php echo h(t('Login:')); ?> @<?php echo h($member['login_username']); ?>
+                                        <?php else: ?>
+                                            <?php echo h(t('No login account')); ?>
+                                        <?php endif; ?>
+                                    </span>
+                                <?php endif; ?>
+                            </td>
+                        <?php endif; ?>
+                    </tr>
+                <?php endforeach; ?>
+            </tbody>
+        </table>
     </div>
 <?php endif; ?>
 </div>
@@ -432,45 +478,57 @@ require 'header.php';
             <?php endif; ?>
         </div>
     <?php else: ?>
-        <div class="list">
-            <?php foreach ($loans as $loan): ?>
-                <div class="list-row">
-                    <div class="avatar-sm"><?php echo h(initials($loan['name'])); ?></div>
-                    <div class="list-main">
-                        <div class="list-title">
-                            <?php echo h(t('Issued to: %s', $loan['name'])); ?>
-                            <?php if ($loan['state'] === 'paid'): ?>
-                                <span class="badge"><?php echo h(t('Paid')); ?></span>
-                            <?php elseif ($loan['state'] === 'overdue'): ?>
-                                <span class="badge danger"><?php echo h(t('Overdue')); ?></span>
-                            <?php else: ?>
-                                <span class="badge warn"><?php echo h(t('Active')); ?></span>
-                            <?php endif; ?>
-                        </div>
-                        <div class="list-sub">
-                            <?php if ($loan['family_name']): ?>
-                                <?php echo h(t('Family')); ?>: <?php echo h($loan['family_name']); ?>
-                            <?php else: ?>
-                                <?php echo h(t('Individual member')); ?>
-                            <?php endif; ?>
-                            &middot; <?php echo h(t('Issued %s', app_date('j M Y', strtotime($loan['loan_date'])))); ?>
-                            &middot; <?php echo h(t('due %s', app_date('j M Y', strtotime($loan['due_date'])))); ?>
-                        </div>
-                        <div class="list-sub">
-                            <?php echo h(t('Loan amount')); ?>:
-                            <strong><?php echo money($loan['amount']); ?> RWF</strong>
-                            &middot; <?php echo number_format((float) $loan['interest_percent'], 2); ?>%
-                            <?php echo h(t('interest, charged once')); ?>
-                            &middot; <?php echo h(t('Total to repay')); ?>:
-                            <strong><?php echo money($loan['total_due']); ?> RWF</strong>
-                        </div>
-                        <div class="list-sub">
-                            <?php echo h(t('Paid %s of %s RWF', money($loan['paid']), money($loan['total_due']))); ?>
-                        </div>
-                    </div>
-                    <div class="list-side"><?php echo money($loan['outstanding']); ?><small><?php echo h(t('outstanding')); ?></small></div>
-                </div>
-            <?php endforeach; ?>
+        <p class="table-hint"><?php echo h(t('Scroll sideways to see all columns.')); ?></p>
+
+        <div class="table-wrap">
+            <table class="data-table loans-table">
+                <thead>
+                    <tr>
+                        <th><?php echo h(t('Recipient')); ?></th>
+                        <th class="wrap"><?php echo h(t('Family or individual')); ?></th>
+                        <th class="num"><?php echo h(t('Loan amount (RWF)')); ?></th>
+                        <th><?php echo h(t('Interest (one-time)')); ?></th>
+                        <th class="num"><?php echo h(t('Total to repay')); ?> (RWF)</th>
+                        <th class="num"><?php echo h(t('Paid (RWF)')); ?></th>
+                        <th class="num"><?php echo h(t('Outstanding (RWF)')); ?></th>
+                        <th><?php echo h(t('Status')); ?></th>
+                        <th class="wrap"><?php echo h(t('Dates')); ?></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php foreach ($loans as $loan): ?>
+                        <tr>
+                            <td class="name"><?php echo h($loan['name']); ?></td>
+                            <td class="wrap">
+                                <?php if ($loan['family_name']): ?>
+                                    <?php echo h($loan['family_name']); ?>
+                                    <span class="sub"><?php echo h(t('Family')); ?></span>
+                                <?php else: ?>
+                                    <?php echo h(t('Individual member')); ?>
+                                <?php endif; ?>
+                            </td>
+                            <td class="num"><?php echo money($loan['amount']); ?></td>
+                            <td><?php echo number_format((float) $loan['interest_percent'], 2); ?>%</td>
+                            <td class="num"><?php echo money($loan['total_due']); ?></td>
+                            <td class="num"><?php echo money($loan['paid']); ?></td>
+                            <td class="num"><strong><?php echo money($loan['outstanding']); ?></strong></td>
+                            <td>
+                                <?php if ($loan['state'] === 'paid'): ?>
+                                    <span class="badge"><?php echo h(t('Paid')); ?></span>
+                                <?php elseif ($loan['state'] === 'overdue'): ?>
+                                    <span class="badge danger"><?php echo h(t('Overdue')); ?></span>
+                                <?php else: ?>
+                                    <span class="badge warn"><?php echo h(t('Active')); ?></span>
+                                <?php endif; ?>
+                            </td>
+                            <td class="wrap">
+                                <?php echo h(t('Issued %s', app_date('j M Y', strtotime($loan['loan_date'])))); ?>
+                                <span class="sub"><?php echo h(t('due %s', app_date('j M Y', strtotime($loan['due_date'])))); ?></span>
+                            </td>
+                        </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
         </div>
     <?php endif; ?>
 </div>

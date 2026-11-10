@@ -389,6 +389,16 @@ function translations()
             'last %s' => 'bwa nyuma %s',
             'no payments yet' => 'nta bwishyu burabaho',
             'No members yet.' => 'Nta banyamuryango barabaho.',
+            'All members' => 'Abanyamuryango bose',
+            'Missed months' => 'Amezi yabuze umusanzu',
+            'Loan' => 'Inguzanyo',
+            'Family or individual' => 'Umuryango cyangwa umuntu ku giti cye',
+            'Actions' => 'Ibikorwa',
+            'Recipient' => 'Uwahawe inguzanyo',
+            'Dates' => 'Amatariki',
+            'Paid (RWF)' => 'Byishyuwe (RWF)',
+            'Outstanding (RWF)' => 'Bisigaye (RWF)',
+            'Scroll sideways to see all columns.' => 'Kanda ku mbonerahamwe ujye iburyo urebe amakuru yose.',
 
             // Loans
             '%d loan' => '%d inguzanyo',
