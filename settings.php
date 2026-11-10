@@ -114,6 +114,7 @@ require 'header.php';
                    min="0" max="100" step="0.01" inputmode="decimal"
                    value="<?php echo h($loan_interest); ?>">
             <div class="hint"><?php echo h(t('Used as the default when a new loan is created.')); ?></div>
+            <div class="hint"><?php echo h(t('This interest is charged once when the loan is repaid, not per month.')); ?></div>
         </div>
 
         <div class="form-actions">

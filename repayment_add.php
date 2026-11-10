@@ -114,7 +114,7 @@ require 'header.php';
 <div class="card">
     <div class="key-value">
         <div><span><?php echo h(t('Loan amount')); ?></span><span><?php echo money($loan['amount']); ?> RWF</span></div>
-        <div><span><?php echo h(t('Interest')); ?></span><span><?php echo number_format((float) $loan['interest_percent'], 2); ?>%</span></div>
+        <div><span><?php echo h(t('Interest (one-time)')); ?></span><span><?php echo number_format((float) $loan['interest_percent'], 2); ?>%</span></div>
         <div><span><?php echo h(t('Total to repay')); ?></span><span><?php echo money($total_due); ?> RWF</span></div>
         <div><span><?php echo h(t('Already paid')); ?></span><span><?php echo money($loan['paid']); ?> RWF</span></div>
         <div><span><?php echo h(t('Outstanding')); ?></span><span><?php echo money($outstanding); ?> RWF</span></div>

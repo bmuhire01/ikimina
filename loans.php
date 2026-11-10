@@ -89,7 +89,11 @@ require 'header.php';
 </div>
 
 <div class="card">
-    <div class="section-head"><h2><?php echo h(t('All loans')); ?></h2></div>
+    <div class="section-head">
+        <h2><?php echo h(t('All loans')); ?></h2>
+        <span class="badge neutral"><?php echo h(t('One-time interest')); ?></span>
+    </div>
+    <p class="hint"><?php echo h(t('Interest is charged once, not monthly.')); ?></p>
     <?php if (count($loans) === 0): ?>
         <div class="empty">
             <p><?php echo h(t('No loans have been given yet.')); ?></p>

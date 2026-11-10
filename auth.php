@@ -102,7 +102,7 @@ function db_value($sql, $default = 0)
     return ($row && $row[0] !== null) ? $row[0] : $default;
 }
 
-// Total amount a loan must repay: principal plus interest, in whole RWF.
+// Total amount a loan must repay: principal plus one-time interest, in whole RWF.
 function loan_total_due($amount, $interest_percent)
 {
     return round((float) $amount * (1 + ((float) $interest_percent / 100)));

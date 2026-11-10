@@ -158,7 +158,7 @@ require 'header.php';
                 <input type="number" id="interest_percent" name="interest_percent"
                        min="0" max="100" step="0.01" required inputmode="decimal"
                        value="<?php echo h($interest); ?>">
-                <div class="hint"><?php echo h(t('The total to repay is the amount plus this interest.')); ?></div>
+                <div class="hint"><?php echo h(t('This interest is charged once, not monthly. The total to repay is the amount plus this one-time interest.')); ?></div>
             </div>
 
             <div class="form-group">
