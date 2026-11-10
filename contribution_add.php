@@ -35,6 +35,7 @@ foreach ($members as $member) {
 
 // Defaults, possibly filled from the "Record" link on the contributions page.
 $member_id = isset($_GET['member_id']) ? (int) $_GET['member_id'] : 0;
+$family_id = isset($_GET['family_id']) ? trim($_GET['family_id']) : '';
 $amount = '';
 $pay_date = date('Y-m-d');
 
@@ -42,24 +43,63 @@ if (isset($_GET['pay_date']) && valid_date($_GET['pay_date'])) {
     $pay_date = $_GET['pay_date'];
 }
 
+// Look up members by id for prefill and validation.
+$members_by_id = array();
+foreach ($members as $member) {
+    $members_by_id[(int) $member['id']] = $member;
+}
+
+// A member link also tells us which family to show.
+if ($member_id > 0 && isset($members_by_id[$member_id])) {
+    $family_id = (string) (int) $members_by_id[$member_id]['family_id'];
+}
+
+// Ignore a family value that is not available in the dropdown.
+if ($family_id !== '' && !ctype_digit($family_id)) {
+    $family_id = '';
+}
+if ($family_id !== '' && ctype_digit($family_id)) {
+    $family_id = (string) (int) $family_id;
+}
+if ($family_id !== '' && (int) $family_id > 0 && !isset($family_groups[(int) $family_id])) {
+    $family_id = '';
+}
+if ($family_id === '0' && count($individuals) === 0) {
+    $family_id = '';
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $member_id = isset($_POST['member_id']) ? (int) $_POST['member_id'] : 0;
+    $family_id = trim($_POST['family_id'] ?? '');
     $amount = trim($_POST['amount'] ?? '');
     $pay_date = trim($_POST['pay_date'] ?? '');
 
+    if ($family_id !== '' && ctype_digit($family_id)) {
+        $family_id = (string) (int) $family_id;
+    }
+
     // Make sure the chosen member exists.
-    $selected = null;
-    if ($member_id > 0) {
-        foreach ($members as $member) {
-            if ((int) $member['id'] === $member_id) {
-                $selected = $member;
-                break;
-            }
+    $selected = isset($members_by_id[$member_id]) ? $members_by_id[$member_id] : null;
+
+    // The family must be chosen first, then the member must belong to it.
+    $family_valid = false;
+    if ($family_id === '' || !ctype_digit($family_id)) {
+        $errors[] = t('Please choose a family or individual member.');
+    } elseif ((int) $family_id === 0) {
+        $family_valid = count($individuals) > 0;
+        if (!$family_valid) {
+            $errors[] = t('Please choose a family or individual member.');
         }
+    } elseif (isset($family_groups[(int) $family_id])) {
+        $family_valid = true;
+    } else {
+        $errors[] = t('Please choose a family or individual member.');
     }
 
     if (!$selected) {
         $errors[] = t('Please choose a member.');
+    } elseif ($family_valid && (int) $selected['family_id'] !== (int) $family_id) {
+        $errors[] = t('The selected member does not belong to the chosen family.');
     }
 
     // RWF amounts are whole numbers.
@@ -132,23 +172,44 @@ require 'header.php';
 
         <form method="post" action="contribution_add.php">
             <div class="form-group">
+                <label for="family_id"><?php echo h(t('Family')); ?></label>
+                <select id="family_id" name="family_id" required>
+                    <option value=""><?php echo h(t('-- Choose a family --')); ?></option>
+                    <?php if (count($individuals) > 0): ?>
+                        <option value="0" <?php echo $family_id === '0' ? 'selected' : ''; ?>>
+                            <?php echo h(t('Individual member')); ?>
+                        </option>
+                    <?php endif; ?>
+                    <?php foreach ($family_groups as $group_id => $group): ?>
+                        <option value="<?php echo (int) $group_id; ?>"
+                            <?php echo (string) $group_id === (string) $family_id ? 'selected' : ''; ?>>
+                            <?php echo h($group['name']); ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select>
+                <div class="hint"><?php echo h(t('Choose the family first, then the member who paid.')); ?></div>
+            </div>
+
+            <div class="form-group">
                 <label for="member_id"><?php echo h(t('Member')); ?></label>
                 <select id="member_id" name="member_id" required>
                     <option value=""><?php echo h(t('-- Choose a member --')); ?></option>
                     <?php if (count($individuals) > 0): ?>
-                        <optgroup label="<?php echo h(t('Members')); ?>">
+                        <optgroup label="<?php echo h(t('Individual member')); ?>">
                             <?php foreach ($individuals as $member): ?>
                                 <option value="<?php echo (int) $member['id']; ?>"
+                                    data-family="0"
                                     <?php echo $member_id === (int) $member['id'] ? 'selected' : ''; ?>>
                                     <?php echo h($member['name']); ?>
                                 </option>
                             <?php endforeach; ?>
                         </optgroup>
                     <?php endif; ?>
-                    <?php foreach ($family_groups as $group): ?>
-                        <optgroup label="<?php echo h(t('Family') . ': ' . $group['name']); ?>">
+                    <?php foreach ($family_groups as $group_id => $group): ?>
+                        <optgroup label="<?php echo h($group['name']); ?>">
                             <?php foreach ($group['members'] as $member): ?>
                                 <option value="<?php echo (int) $member['id']; ?>"
+                                    data-family="<?php echo (int) $group_id; ?>"
                                     <?php echo $member_id === (int) $member['id'] ? 'selected' : ''; ?>>
                                     <?php echo h($member['name'] . ' (' . t($member['member_type'] === 'child' ? 'Child' : 'Adult') . ')'); ?>
                                 </option>
@@ -179,5 +240,50 @@ require 'header.php';
             </div>
         </form>
     </div>
+
+    <script>
+    (function () {
+        var familySelect = document.getElementById('family_id');
+        var memberSelect = document.getElementById('member_id');
+        if (!familySelect || !memberSelect) {
+            return;
+        }
+
+        function filterMembers() {
+            var family = familySelect.value;
+            var current = memberSelect.value;
+            var currentVisible = false;
+
+            Array.prototype.forEach.call(memberSelect.options, function (option) {
+                if (!option.value) {
+                    return;
+                }
+
+                var matches = family === '' || option.getAttribute('data-family') === family;
+                option.hidden = !matches;
+                option.disabled = !matches;
+
+                if (matches && option.value === current) {
+                    currentVisible = true;
+                }
+            });
+
+            Array.prototype.forEach.call(memberSelect.querySelectorAll('optgroup'), function (group) {
+                var hasVisible = Array.prototype.some.call(group.querySelectorAll('option'), function (option) {
+                    return option.value && !option.disabled;
+                });
+                group.hidden = !hasVisible;
+                group.disabled = !hasVisible;
+            });
+
+            if (current && !currentVisible) {
+                memberSelect.value = '';
+            }
+        }
+
+        familySelect.addEventListener('change', filterMembers);
+        filterMembers();
+    })();
+    </script>
 <?php endif; ?>
 <?php require 'footer.php'; ?>

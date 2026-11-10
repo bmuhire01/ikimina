@@ -60,6 +60,7 @@ require 'header.php';
     </div>
     <div class="row-actions" style="margin-top:0;">
         <?php if (is_admin()): ?>
+            <a class="btn btn-small" href="contribution_add.php?family_id=<?php echo $id; ?>"><?php echo h(t('Record saving')); ?></a>
             <a class="btn btn-secondary btn-small" href="family_edit.php?id=<?php echo $id; ?>"><?php echo h(t('Edit family')); ?></a>
         <?php endif; ?>
         <a class="btn btn-secondary btn-small" href="families.php"><?php echo h(t('Back to families')); ?></a>
