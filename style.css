@@ -474,6 +474,24 @@ th.wrap, td.wrap { white-space: normal; min-width: 150px; }
 .table-hint { margin: 0 0 8px; color: #6b7280; font-size: 12px; }
 .table-actions { display: flex; flex-wrap: wrap; gap: 6px; }
 
+/* Month rows on the contribution details page. */
+.month-table tr.month-unpaid td { background: #fff1f2; }
+.month-table tr.month-unpaid td:first-child { box-shadow: inset 4px 0 0 #ef4444; }
+.month-table tr.month-paid td { background: #f7fdf9; }
+.month-table tr.month-future td,
+.month-table tr.month-not_joined td,
+.month-table tr.month-empty td { color: #6b7280; }
+
+/* Small year picker used on the contribution details page. */
+.year-form { margin: 0; }
+.year-form select {
+    width: auto;
+    min-width: 96px;
+    min-height: 38px;
+    padding: 6px 10px;
+    font-size: 14px;
+}
+
 /* Login page */
 .auth-page {
     min-height: 100vh;
