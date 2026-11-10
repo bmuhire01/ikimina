@@ -5,3 +5,11 @@
 
 # Do not show a directory listing.
 Options -Indexes
+
+# Send all visitors to the encrypted version of the site.
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteCond %{HTTP_HOST} ^unf\.free\.je$ [NC]
+    RewriteCond %{HTTPS} !=on
+    RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+</IfModule>
