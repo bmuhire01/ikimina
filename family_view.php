@@ -31,8 +31,7 @@ if (!$family) {
 $result = mysqli_query($conn, "SELECT m.id, m.name, m.phone, m.join_date, m.date_of_birth,
                                       m.member_type, m.status,
                                       COALESCE(SUM(c.amount), 0) AS total_saved,
-                                      COUNT(c.id) AS payment_count,
-                                      MAX(c.pay_date) AS last_payment
+                                      COUNT(c.id) AS payment_count
                                FROM members m
                                LEFT JOIN contributions c ON c.member_id = m.id
                                WHERE m.family_id = $id
@@ -128,14 +127,6 @@ require 'header.php';
                             ?>
                             &middot; <?php echo h(t('joined %s', app_date('j M Y', strtotime($member['join_date'])))); ?>
                         </div>
-                        <div class="list-sub">
-                            <?php echo h(tn('%d payment', '%d payments', (int) $member['payment_count'])); ?>
-                            <?php if ($member['last_payment']): ?>
-                                &middot; <?php echo h(t('last %s', app_date('j M Y', strtotime($member['last_payment'])))); ?>
-                            <?php else: ?>
-                                &middot; <?php echo h(t('no payments yet')); ?>
-                            <?php endif; ?>
-                        </div>
                         <?php if (is_admin()): ?>
                             <div class="row-actions">
                                 <a class="btn btn-small"
@@ -145,7 +136,6 @@ require 'header.php';
                             </div>
                         <?php endif; ?>
                     </div>
-                    <div class="list-side"><?php echo money($member['total_saved']); ?><small>RWF</small></div>
                 </div>
             <?php endforeach; ?>
         </div>
