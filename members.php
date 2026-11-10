@@ -18,6 +18,8 @@ if ($q !== '') {
 // Each member plus their family and the username of their login (if one exists).
 $sql = "SELECT m.id, m.name, m.phone, m.join_date, m.status, m.member_type,
                f.id AS family_id, f.name AS family_name,
+               (SELECT COALESCE(SUM(c.amount), 0) FROM contributions c
+                WHERE c.member_id = m.id) AS total_saved,
                (SELECT u.username FROM users u
                 WHERE u.member_id = m.id
                 ORDER BY u.id LIMIT 1) AS login_username
@@ -115,7 +117,11 @@ require 'header.php';
                             <a href="family_view.php?id=<?php echo (int) $member['family_id']; ?>"><?php echo h($member['family_name']); ?></a>
                         </div>
                     <?php endif; ?>
-                    <?php if ($member['member_type'] !== 'child'): ?>
+                    <div class="list-sub">
+                        <?php echo h(t('Total saved')); ?>:
+                        <strong><?php echo money($member['total_saved']); ?> RWF</strong>
+                    </div>
+                    <?php if (is_admin() && $member['member_type'] !== 'child'): ?>
                         <div class="list-sub">
                             <?php if ($member['login_username']): ?>
                                 <?php echo h(t('Login:')); ?> @<?php echo h($member['login_username']); ?>

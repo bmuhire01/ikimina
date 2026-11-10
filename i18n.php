@@ -367,6 +367,8 @@ function translations()
 
             // Balances
             'Total saved by each member' => 'Amafaranga yose yabitswe n\'umunyamuryango',
+            'Total saved' => 'Igiteranyo cyabitswe',
+            'Read-only view: you can see the group records but cannot change them.' => 'Kureba gusa: ushobora kureba inyandiko z\'itsinda ariko ntushobora kuzihindura.',
             'Group total saved' => 'Igiteranyo cy\'itsinda cyabitswe',
             '%d member' => '%d umunyamuryango',
             '%d members' => '%d abanyamuryango',

@@ -4,7 +4,7 @@ require_once 'auth.php';
 require_login();
 
 $page_title = 'Group report';
-$active = 'more';
+$active = 'report';
 
 $settings = get_setting();
 $monthly_contribution = (float) $settings['contribution_amount'];

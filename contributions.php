@@ -59,6 +59,19 @@ $result = mysqli_query($conn, "SELECT m.id, m.name, m.phone, m.member_type,
 $unpaid = $result ? mysqli_fetch_all($result, MYSQLI_ASSOC) : array();
 $unpaid_count = count($unpaid);
 
+// All-time savings for every member, so the whole group can see each balance.
+$result = mysqli_query($conn, "SELECT m.id, m.name, m.phone, m.member_type,
+                                      f.name AS family_name,
+                                      COALESCE(SUM(c.amount), 0) AS total_saved,
+                                      COUNT(c.id) AS payment_count,
+                                      MAX(c.pay_date) AS last_payment
+                               FROM members m
+                               LEFT JOIN families f ON f.id = m.family_id
+                               LEFT JOIN contributions c ON c.member_id = m.id
+                               GROUP BY m.id, m.name, m.phone, m.member_type, f.name
+                               ORDER BY total_saved DESC, m.name ASC");
+$all_savings = $result ? mysqli_fetch_all($result, MYSQLI_ASSOC) : array();
+
 // Default date when the secretary clicks "Record" next to an unpaid member.
 $default_pay_date = ($month === date('Y-m')) ? date('Y-m-d') : $end;
 
@@ -175,6 +188,48 @@ require 'header.php';
                                href="contribution_add.php?member_id=<?php echo (int) $person['id']; ?>&amp;pay_date=<?php echo h($default_pay_date); ?>"><?php echo h(t('Record')); ?></a>
                         </div>
                     <?php endif; ?>
+                </div>
+            <?php endforeach; ?>
+        </div>
+    <?php endif; ?>
+</div>
+
+<div class="card">
+    <div class="section-head">
+        <h2><?php echo h(t('Total saved by each member')); ?></h2>
+        <a class="btn btn-secondary btn-small" href="balances.php"><?php echo h(t('Balances')); ?></a>
+    </div>
+    <?php if (count($all_savings) === 0): ?>
+        <div class="empty">
+            <p><?php echo h(t('No members yet.')); ?></p>
+        </div>
+    <?php else: ?>
+        <div class="list">
+            <?php foreach ($all_savings as $saver): ?>
+                <div class="list-row">
+                    <div class="avatar-sm"><?php echo h(initials($saver['name'])); ?></div>
+                    <div class="list-main">
+                        <div class="list-title">
+                            <?php echo h($saver['name']); ?>
+                            <?php if ($saver['member_type'] === 'child'): ?>
+                                <span class="badge neutral"><?php echo h(t('Child')); ?></span>
+                            <?php endif; ?>
+                        </div>
+                        <div class="list-sub">
+                            <?php echo $saver['family_name'] ? h($saver['family_name']) : ($saver['phone'] ? h($saver['phone']) : h(t('Individual member'))); ?>
+                        </div>
+                        <div class="list-sub">
+                            <?php echo h(tn('%d payment', '%d payments', (int) $saver['payment_count'])); ?>
+                            <?php if ($saver['last_payment']): ?>
+                                &middot; <?php echo h(t('last %s', app_date('j M Y', strtotime($saver['last_payment'])))); ?>
+                            <?php else: ?>
+                                &middot; <?php echo h(t('no payments yet')); ?>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                    <div class="list-side">
+                        <?php echo money($saver['total_saved']); ?><small>RWF</small>
+                    </div>
                 </div>
             <?php endforeach; ?>
         </div>

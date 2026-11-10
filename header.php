@@ -18,7 +18,7 @@ if (in_array($tab, array('contributions', 'balances'), true)) {
 if (in_array($tab, array('families'), true)) {
     $tab = 'members';
 }
-if (in_array($tab, array('penalties', 'meetings', 'settings', 'password', 'more'), true)) {
+if (in_array($tab, array('penalties', 'meetings', 'settings', 'password', 'more', 'report'), true)) {
     $tab = 'more';
 }
 
@@ -88,5 +88,10 @@ function nav_icon($name)
 <?php if ($flash): ?>
     <div class="alert <?php echo $flash['type'] === 'success' ? 'success' : 'error'; ?>">
         <?php echo h($flash['message']); ?>
+    </div>
+<?php endif; ?>
+<?php if (!is_admin() && in_array($active, array('members', 'balances', 'contributions', 'loans', 'penalties', 'families', 'meetings', 'report'), true)): ?>
+    <div class="readonly-note">
+        <?php echo h(t('Read-only view: you can see the group records but cannot change them.')); ?>
     </div>
 <?php endif; ?>
