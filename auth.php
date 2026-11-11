@@ -108,6 +108,39 @@ function loan_total_due($amount, $interest_percent)
     return round((float) $amount * (1 + ((float) $interest_percent / 100)));
 }
 
+// Split a total amount into equal parts. Any leftover francs go to the first people.
+function split_evenly($amount, $count)
+{
+    $count = max(1, (int) $count);
+    $total = (int) round((float) $amount);
+    $base = (int) floor($total / $count);
+    $extra = $total - ($base * $count);
+
+    $shares = array();
+    for ($i = 0; $i < $count; $i++) {
+        $shares[] = $base + ($i < $extra ? 1 : 0);
+    }
+
+    return $shares;
+}
+
+// True when the loan was taken by several people together.
+function loan_is_group($loan)
+{
+    return !empty($loan['group_id']);
+}
+
+// What one loan row must repay in total.
+// Shared loans store their own interest amount so the shares add up exactly.
+function loan_row_due($loan)
+{
+    if (isset($loan['interest_amount']) && $loan['interest_amount'] !== null) {
+        return round((float) $loan['amount'] + (float) $loan['interest_amount']);
+    }
+
+    return loan_total_due($loan['amount'], $loan['interest_percent']);
+}
+
 // Load the single settings row, with safe defaults.
 function get_setting()
 {

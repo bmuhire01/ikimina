@@ -30,10 +30,13 @@ $family_saved = (float) db_value("SELECT COALESCE(SUM(c.amount), 0)
                                   WHERE m.family_id IS NOT NULL");
 
 // Loans still to be repaid.
-$loan_due = (float) db_value("SELECT COALESCE(SUM(ROUND(amount * (1 + interest_percent / 100))), 0) FROM loans");
+// Shared loans store their own interest amount so the shares add up exactly.
+$loan_due = (float) db_value("SELECT COALESCE(SUM(CASE WHEN interest_amount IS NOT NULL
+                                                       THEN amount + interest_amount
+                                                       ELSE ROUND(amount * (1 + interest_percent / 100)) END), 0) FROM loans");
 $loan_repaid = (float) db_value("SELECT COALESCE(SUM(amount), 0) FROM repayments");
 $loans_out = max(0, $loan_due - $loan_repaid);
-$active_loans = (int) db_value("SELECT COUNT(*) FROM loans WHERE status <> 'paid'");
+$active_loans = (int) db_value("SELECT COUNT(DISTINCT IFNULL(group_id, id)) FROM loans WHERE status <> 'paid'");
 
 // Penalties that are still open.
 $unpaid_penalties = (float) db_value("SELECT COALESCE(SUM(amount), 0) FROM penalties WHERE status = 'unpaid'");

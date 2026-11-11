@@ -62,15 +62,20 @@ CREATE TABLE IF NOT EXISTS contributions (
 ) ENGINE=InnoDB;
 
 -- 5. Loans given to members
+-- Loans that several people share together share the same group_id.
+-- interest_amount is set on shared loans so each person's share is exact.
 CREATE TABLE IF NOT EXISTS loans (
   id INT AUTO_INCREMENT PRIMARY KEY,
   member_id INT NOT NULL,
+  group_id INT NULL,
   amount DECIMAL(12, 2) NOT NULL,
   interest_percent DECIMAL(5, 2) NOT NULL DEFAULT 0,
+  interest_amount DECIMAL(12, 2) NULL,
   loan_date DATE NOT NULL,
   due_date DATE NOT NULL,
   status ENUM('active', 'paid', 'overdue') NOT NULL DEFAULT 'active',
   KEY idx_loans_member (member_id),
+  KEY idx_loans_group (group_id),
   KEY idx_loans_due_date (due_date),
   CONSTRAINT fk_loans_member FOREIGN KEY (member_id)
     REFERENCES members(id) ON DELETE CASCADE
@@ -85,6 +90,13 @@ CREATE TABLE IF NOT EXISTS repayments (
   KEY idx_repayments_loan (loan_id),
   CONSTRAINT fk_repayments_loan FOREIGN KEY (loan_id)
     REFERENCES loans(id) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+-- 6b. A group of people who take one loan together
+CREATE TABLE IF NOT EXISTS loan_groups (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(150) NOT NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB;
 
 -- 7. Penalties charged to members
@@ -180,6 +192,41 @@ ALTER TABLE users
 
 ALTER TABLE contributions
   ADD COLUMN IF NOT EXISTS note VARCHAR(255) NULL AFTER pay_date;
+
+-- Shared loans: rows that share a group_id were taken together as one loan.
+ALTER TABLE loans
+  ADD COLUMN IF NOT EXISTS group_id INT NULL AFTER member_id;
+
+-- Shared loans keep their own interest amount so each share is exact.
+ALTER TABLE loans
+  ADD COLUMN IF NOT EXISTS interest_amount DECIMAL(12, 2) NULL AFTER interest_percent;
+
+SET @has_loans_group_index = (
+  SELECT COUNT(*) FROM information_schema.STATISTICS
+  WHERE TABLE_SCHEMA = DATABASE()
+    AND TABLE_NAME = 'loans'
+    AND INDEX_NAME = 'idx_loans_group'
+);
+SET @sql = IF(@has_loans_group_index = 0,
+  'ALTER TABLE loans ADD INDEX idx_loans_group (group_id)',
+  'SELECT 1');
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+SET @has_loans_group_fk = (
+  SELECT COUNT(*) FROM information_schema.TABLE_CONSTRAINTS
+  WHERE CONSTRAINT_SCHEMA = DATABASE()
+    AND TABLE_NAME = 'loans'
+    AND CONSTRAINT_NAME = 'fk_loans_group'
+    AND CONSTRAINT_TYPE = 'FOREIGN KEY'
+);
+SET @sql = IF(@has_loans_group_fk = 0,
+  'ALTER TABLE loans ADD CONSTRAINT fk_loans_group FOREIGN KEY (group_id) REFERENCES loan_groups(id) ON DELETE CASCADE',
+  'SELECT 1');
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
 
 -- First admin account: username admin / password admin123
 -- Change this password before using the app with real money.

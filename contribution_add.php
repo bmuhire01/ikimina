@@ -43,6 +43,36 @@ if (isset($_GET['pay_date']) && valid_date($_GET['pay_date'])) {
     $pay_date = $_GET['pay_date'];
 }
 
+// The month a contribution belongs to, so the secretary can fill in months they missed.
+$month = trim($_GET['month'] ?? '');
+if (preg_match('/^\d{4}-\d{2}$/', $month) && $month <= date('Y-m')) {
+    $pay_date = $month . '-01';
+}
+
+// The months the secretary can choose, from the start of the group up to today.
+$start_month = (string) db_value("SELECT MIN(join_date) FROM members", '');
+$start_month = $start_month !== '' ? date('Y-m', strtotime($start_month)) : date('Y-m');
+$month_options = array();
+$cursor = $start_month;
+$now_month = date('Y-m');
+while ($cursor <= $now_month) {
+    $month_options[] = $cursor;
+    $cursor = date('Y-m', strtotime($cursor . ' +1 month'));
+}
+if (count($month_options) === 0) {
+    $month_options[] = $now_month;
+}
+
+// The months each member has already paid, to show what is still missing.
+$paid_months = array();
+$result = mysqli_query($conn, "SELECT member_id, DATE_FORMAT(pay_date, '%Y-%m') AS ym
+                               FROM contributions");
+if ($result) {
+    while ($row = mysqli_fetch_assoc($result)) {
+        $paid_months[(int) $row['member_id']][] = $row['ym'];
+    }
+}
+
 // Look up members by id for prefill and validation.
 $members_by_id = array();
 foreach ($members as $member) {
@@ -73,6 +103,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $family_id = trim($_POST['family_id'] ?? '');
     $amount = trim($_POST['amount'] ?? '');
     $pay_date = trim($_POST['pay_date'] ?? '');
+    $month = trim($_POST['month'] ?? '');
 
     if ($family_id !== '' && ctype_digit($family_id)) {
         $family_id = (string) (int) $family_id;
@@ -123,6 +154,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $errors[] = t('Payment date cannot be in the future.');
     }
 
+    // The month decides which month the contribution is counted in.
+    if (!preg_match('/^\d{4}-\d{2}$/', $month)) {
+        $errors[] = t('Please choose the month this contribution belongs to.');
+    } elseif ($month > date('Y-m')) {
+        $errors[] = t('You cannot record a contribution for a future month.');
+    } elseif (substr($pay_date, 0, 7) !== $month) {
+        $errors[] = t('The payment date must be inside the chosen month.');
+    }
+
     // Save when everything is valid.
     if (count($errors) === 0) {
         $amount_sql = number_format($amount_value, 2, '.', '');
@@ -140,6 +180,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $errors[] = t('Could not save the contribution: %s', mysqli_error($conn));
     }
 }
+
+// The month shown in the picker, after any posted choice.
+$selected_month = preg_match('/^\d{4}-\d{2}$/', $month) ? $month : substr($pay_date, 0, 7);
 
 require 'header.php';
 ?>
@@ -228,10 +271,24 @@ require 'header.php';
             </div>
 
             <div class="form-group">
+                <label for="month"><?php echo h(t('Month this contribution belongs to')); ?></label>
+                <select id="month" name="month" required>
+                    <?php foreach ($month_options as $option): ?>
+                        <option value="<?php echo h($option); ?>"
+                            <?php echo $option === $selected_month ? 'selected' : ''; ?>>
+                            <?php echo h(app_date('F Y', strtotime($option . '-01'))); ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select>
+                <div class="hint"><?php echo h(t('Use this to add months you missed before the system started.')); ?></div>
+            </div>
+
+            <div class="form-group">
                 <label for="pay_date"><?php echo h(t('Payment date')); ?></label>
                 <input type="date" id="pay_date" name="pay_date" required
                        max="<?php echo date('Y-m-d'); ?>"
                        value="<?php echo h($pay_date); ?>">
+                <div class="hint"><?php echo h(t('The date must be inside the month you chose.')); ?></div>
             </div>
 
             <div class="form-actions">
@@ -283,6 +340,71 @@ require 'header.php';
 
         familySelect.addEventListener('change', filterMembers);
         filterMembers();
+    })();
+
+    // The month picker sets the payment date, and the date follows the month.
+    (function () {
+        var monthSelect = document.getElementById('month');
+        var dateInput = document.getElementById('pay_date');
+        var memberSelect = document.getElementById('member_id');
+        if (!monthSelect || !dateInput) {
+            return;
+        }
+
+        var paidMonths = <?php echo json_encode($paid_months); ?>;
+        var paidLabel = <?php echo json_encode(t('paid')); ?>;
+        var baseLabels = {};
+
+        Array.prototype.forEach.call(monthSelect.options, function (option) {
+            baseLabels[option.value] = option.textContent;
+        });
+
+        function lastDayOf(month) {
+            var parts = month.split('-');
+            return new Date(Number(parts[0]), Number(parts[1]), 0).getDate();
+        }
+
+        function applyMonth() {
+            var month = monthSelect.value;
+            if (!month) {
+                return;
+            }
+            var day = dateInput.value ? Number(dateInput.value.slice(8, 10)) : 1;
+            var max = lastDayOf(month);
+            if (!day || day > max) {
+                day = max;
+            }
+            if (day < 1) {
+                day = 1;
+            }
+            dateInput.value = month + '-' + String(day).padStart(2, '0');
+        }
+
+        function applyDate() {
+            if (dateInput.value) {
+                monthSelect.value = dateInput.value.slice(0, 7);
+            }
+        }
+
+        // Show which months this member has already paid.
+        function markPaid() {
+            var memberId = memberSelect ? memberSelect.value : '';
+            var paid = paidMonths[memberId] || [];
+            Array.prototype.forEach.call(monthSelect.options, function (option) {
+                option.textContent = baseLabels[option.value];
+                if (paid.indexOf(option.value) !== -1) {
+                    option.textContent += ' (' + paidLabel + ')';
+                }
+            });
+        }
+
+        monthSelect.addEventListener('change', applyMonth);
+        dateInput.addEventListener('change', applyDate);
+        if (memberSelect) {
+            memberSelect.addEventListener('change', markPaid);
+        }
+        applyMonth();
+        markPaid();
     })();
     </script>
 <?php endif; ?>

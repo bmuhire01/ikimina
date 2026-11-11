@@ -92,12 +92,15 @@ $result = mysqli_query($conn, "SELECT m.id, m.name, m.member_type,
 $top_savers = $result ? mysqli_fetch_all($result, MYSQLI_ASSOC) : array();
 
 // Loans and penalties.
+// Shared loans store their own interest amount so the shares add up exactly.
 $loan_principal = (float) db_value("SELECT COALESCE(SUM(amount), 0) FROM loans");
-$loan_due = (float) db_value("SELECT COALESCE(SUM(ROUND(amount * (1 + interest_percent / 100))), 0) FROM loans");
+$loan_due = (float) db_value("SELECT COALESCE(SUM(CASE WHEN interest_amount IS NOT NULL
+                                                       THEN amount + interest_amount
+                                                       ELSE ROUND(amount * (1 + interest_percent / 100)) END), 0) FROM loans");
 $loan_repaid = (float) db_value("SELECT COALESCE(SUM(amount), 0) FROM repayments");
 $loans_out = max(0, $loan_due - $loan_repaid);
-$open_loans = (int) db_value("SELECT COUNT(*) FROM loans WHERE status <> 'paid'");
-$overdue_loans = (int) db_value("SELECT COUNT(*) FROM loans
+$open_loans = (int) db_value("SELECT COUNT(DISTINCT IFNULL(group_id, id)) FROM loans WHERE status <> 'paid'");
+$overdue_loans = (int) db_value("SELECT COUNT(DISTINCT IFNULL(group_id, id)) FROM loans
                                  WHERE status <> 'paid' AND due_date < '$today'");
 $unpaid_penalties = (float) db_value("SELECT COALESCE(SUM(amount), 0) FROM penalties WHERE status = 'unpaid'");
 $unpaid_penalty_count = (int) db_value("SELECT COUNT(*) FROM penalties WHERE status = 'unpaid'");

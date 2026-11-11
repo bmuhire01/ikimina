@@ -18,8 +18,8 @@ if ($loan_id < 1) {
 }
 
 // Load the loan and everything already repaid against it.
-$result = mysqli_query($conn, "SELECT l.id, l.member_id, l.amount, l.interest_percent,
-                                      l.loan_date, l.due_date, l.status, m.name,
+$result = mysqli_query($conn, "SELECT l.id, l.member_id, l.group_id, l.amount, l.interest_percent,
+                                      l.interest_amount, l.loan_date, l.due_date, l.status, m.name,
                                       COALESCE((SELECT SUM(r.amount) FROM repayments r
                                                 WHERE r.loan_id = l.id), 0) AS paid
                                FROM loans l
@@ -33,9 +33,21 @@ if (!$loan) {
     exit;
 }
 
-$total_due = loan_total_due($loan['amount'], $loan['interest_percent']);
+$total_due = loan_row_due($loan);
 $outstanding = max(0, $total_due - (float) $loan['paid']);
 $closed = $outstanding <= 0.005;
+
+// The name of the shared loan this person belongs to.
+$group_name = '';
+if ($loan['group_id']) {
+    $result = mysqli_query($conn, "SELECT name FROM loan_groups WHERE id = " . (int) $loan['group_id'] . " LIMIT 1");
+    if ($result) {
+        $row = mysqli_fetch_assoc($result);
+        if ($row) {
+            $group_name = $row['name'];
+        }
+    }
+}
 
 $errors = array();
 $amount = '';
@@ -110,6 +122,18 @@ require 'header.php';
     </div>
     <a class="btn btn-secondary btn-small" href="loans.php"><?php echo h(t('Back')); ?></a>
 </div>
+
+<?php if ($group_name !== ''): ?>
+    <div class="card">
+        <div class="key-value">
+            <div><span><?php echo h(t('Shared loan')); ?></span><span><?php echo h($group_name); ?></span></div>
+            <div><span><?php echo h(t('This person pays')); ?></span><span><?php echo money($loan['amount']); ?> RWF</span></div>
+        </div>
+        <p class="hint" style="margin-top:12px;">
+            <?php echo h(t('This loan was taken by several people together. Each person pays their own share.')); ?>
+        </p>
+    </div>
+<?php endif; ?>
 
 <div class="card">
     <div class="key-value">

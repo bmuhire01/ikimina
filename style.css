@@ -482,6 +482,24 @@ th.wrap, td.wrap { white-space: normal; min-width: 150px; }
 .month-table tr.month-not_joined td,
 .month-table tr.month-empty td { color: #6b7280; }
 
+/* The shares of a group loan, one row per person. */
+.share-list {
+    margin-top: 8px;
+    border-top: 1px solid #eef2ed;
+    padding-top: 8px;
+}
+.share-row {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 5px 0;
+    font-size: 13px;
+}
+.share-name { font-weight: 700; flex: 1 1 auto; min-width: 0; }
+.share-due { color: #6b7280; font-size: 12px; white-space: nowrap; }
+.share-row .btn { margin-left: auto; }
+
 /* Small year picker used on the contribution details page. */
 .year-form { margin: 0; }
 .year-form select {

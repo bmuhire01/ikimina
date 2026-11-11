@@ -91,8 +91,8 @@ usort($saving_entities, function ($a, $b) {
 });
 
 // Loans issued, including who received each loan.
-$result = mysqli_query($conn, "SELECT l.id, l.member_id, l.amount, l.interest_percent,
-                                      l.loan_date, l.due_date, l.status,
+$result = mysqli_query($conn, "SELECT l.id, l.member_id, l.group_id, l.amount, l.interest_percent,
+                                      l.interest_amount, l.loan_date, l.due_date, l.status,
                                       m.name, m.member_type,
                                       f.id AS family_id, f.name AS family_name,
                                       COALESCE((SELECT SUM(r.amount) FROM repayments r
@@ -107,7 +107,7 @@ $loan_principal_total = 0;
 $loan_outstanding_total = 0;
 
 foreach ($loans as $index => $loan) {
-    $total_due = loan_total_due($loan['amount'], $loan['interest_percent']);
+    $total_due = loan_row_due($loan);
     $outstanding = max(0, $total_due - (float) $loan['paid']);
 
     $loans[$index]['total_due'] = $total_due;
@@ -256,7 +256,12 @@ require 'header.php';
                 <tbody>
                     <?php foreach ($loans as $loan): ?>
                         <tr>
-                            <td class="name"><?php echo h($loan['name']); ?></td>
+                            <td class="name">
+                                <?php echo h($loan['name']); ?>
+                                <?php if ($loan['group_id']): ?>
+                                    <span class="badge neutral"><?php echo h(t('Group')); ?></span>
+                                <?php endif; ?>
+                            </td>
                             <td class="wrap">
                                 <?php if ($loan['family_name']): ?>
                                     <?php echo h($loan['family_name']); ?>
